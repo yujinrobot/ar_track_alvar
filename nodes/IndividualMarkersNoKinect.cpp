@@ -70,6 +70,7 @@ double max_track_error;
 std::string cam_image_topic; 
 std::string cam_info_topic; 
 std::string output_frame;
+std::string tf_prefix = "";
 
 void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg);
 
@@ -122,8 +123,16 @@ void getCapCallback (const sensor_msgs::ImageConstPtr & image_msg)
                 tf::Transform m (tf::Quaternion::getIdentity (), markerOrigin);
                 tf::Transform markerPose = t * m; // marker pose in the camera frame
 
-				//Publish the transform from the camera to the marker		
-				std::string markerFrame = "ar_marker_";
+				//Publish the transform from the camera to the marker
+                                std::string markerFrame = "";
+                                if (tf_prefix.size() > 0)
+                                {
+                                  markerFrame += tf_prefix + "/" + "ar_marker_";
+                                }
+                                else
+                                {
+                                  markerFrame += "ar_marker_";
+                                }
 				std::stringstream out;
 				out << id;
 				std::string id_string = out.str();
@@ -244,6 +253,9 @@ int main(int argc, char *argv[])
   if (argc > 7)
     max_frequency = atof(argv[7]);
 
+  if (argc > 8)
+    tf_prefix = argv[8];
+
   // Set dynamically configurable parameters so they don't get replaced by default values
   pn.setParam("marker_size", marker_size);
   pn.setParam("max_new_marker_error", max_new_marker_error);
@@ -251,6 +263,8 @@ int main(int argc, char *argv[])
 
   if (argc > 7)
     pn.setParam("max_frequency", max_frequency);
+  if (argc > 8)
+    pn.setParam("tf_prefix", tf_prefix);
 
 	cam = new Camera(n, cam_info_topic);
 	tf_listener = new tf::TransformListener(n);
